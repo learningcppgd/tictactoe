@@ -1,0 +1,6 @@
+﻿  ttt.cpp
+C:\Users\jurij\Desktop\cppTTT\ttt\ttt\ttt.cpp(76,11): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+C:\Users\jurij\Desktop\cppTTT\ttt\ttt\ttt.cpp(77,11): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+  ttt.vcxproj -> C:\Users\jurij\Desktop\cppTTT\ttt\x64\Debug\ttt.exe
+  'pwsh.exe' is not recognized as an internal or external command,
+  operable program or batch file.
