@@ -305,6 +305,7 @@ void AIMove(int(&board)[3][3], int& turn)
 		}
 	}
 
+	// try to block
 	for (int r{ 0 }; r < 3; r++)
 	{
 		for (int c{ 0 }; c < 3; c++)
@@ -317,17 +318,22 @@ void AIMove(int(&board)[3][3], int& turn)
 			}
 		}
 	}
-
+	// center
 	if (board[1][1] == 0)
 	{
 		board[1][1] = O_VAL;
 		turn = X_VAL;
 		return;
 	}
-
+	//take wherever you can
 	for (int r = 0; r < 3; r++) {
 		for (int c = 0; c < 3; c++) {
-			if (board[r][c] == 0) { board[r][c] = O_VAL; turn = X_VAL; return; }
+			if (board[r][c] == 0)
+			{
+				board[r][c] = O_VAL;
+				turn = X_VAL;
+				return; 
+			}
 		}
 	}
 
