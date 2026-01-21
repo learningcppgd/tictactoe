@@ -8,10 +8,12 @@ void MouseInput(int (& board)[3][3], int size, int& turn);
 int CheckforWin(int board[3][3], int& gamestate, int& who_won);
 void drawMenu(const char* t1, const char* t2, int cellSize, int fontSize, Color col);
 Rectangle ofText(const char* t, int fontSize, int x, int y);
-void CheckCLickBegin(int& gamestate, Rectangle rect);
 void drawEnding(int who_won, int x, int y, int fontsize, Color col);
+void AIMove(int (& board)[3][3], int& turn);
+bool TestWin(int board[3][3], int r, int c, int player);
 
-
+const int X_VAL = 1;
+const int O_VAL = 2;
 
 enum STATES
 {
@@ -25,7 +27,13 @@ enum WON
 	X_PLAYER = 1, O_PLAYER, DRAW
 };
 
+enum TURN
+{
+	TWOPLAYER = 0, SINGLEPLAYER
+};
+
 int who_won{ 0 };
+int MODE{ TWOPLAYER };
 
 int main()
 {
@@ -54,18 +62,34 @@ int main()
 		switch (gameState) {
 
 			case MENU:
-
+				if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
+				{
+					Vector2 mouse_pos = GetMousePosition();
+					if (CheckCollisionPointRec(mouse_pos, ofText(singlePlayer, fontSize, t1_pos.x, t1_pos.y)))
+					{
+						gameState = GAME;
+						MODE = SINGLEPLAYER;
+					}
+					else if (CheckCollisionPointRec(mouse_pos, ofText(twoPlayer, fontSize, t2_pos.x, t2_pos.y)))
+					{
+						gameState = GAME;
+						MODE = TWOPLAYER;
+					}
+				}
 				BeginDrawing();
 				ClearBackground(BLACK);
-				drawMenu(singlePlayer, twoPlayer,cellSize,fontSize,color);
-				CheckCLickBegin(gameState, ofText(twoPlayer, fontSize, t2_pos.x, t2_pos.y));
-				CheckCLickBegin(gameState, ofText(singlePlayer, fontSize, t1_pos.x, t1_pos.y));
+				drawMenu(singlePlayer, twoPlayer, cellSize, fontSize, color);
 				EndDrawing();
 				break;
 
 			case GAME:
 				//update
-				MouseInput(board, cellSize, turn);
+				if (MODE == TWOPLAYER || (MODE == SINGLEPLAYER && turn == X_PLAYER)) {
+					MouseInput(board, cellSize, turn);
+				}
+				else if (MODE == SINGLEPLAYER && turn == O_PLAYER) {
+					AIMove(board, turn);
+				}
 
 				BeginDrawing();
 				ClearBackground(BLACK);
@@ -73,14 +97,13 @@ int main()
 				drawSymbols(board, cellSize, color);
 				EndDrawing();
 				CheckforWin(board, gameState, who_won);
-				std::cout << CheckforWin(board, gameState, who_won);
 				break;
 			case END:
 				BeginDrawing();
 				ClearBackground(BLACK);
 				//who won, would you like to play again?
 				drawEnding(who_won, t1_pos.x, t1_pos.y, fontSize, color);
-				if (IsKeyPressed(KEY_A)) {
+				if (IsKeyPressed(KEY_Y)) {
 					for (int r{ 0 }; r < 3; r++)
 						for (int c{ 0 }; c < 3; c++) board[r][c] = 0;
 
@@ -149,7 +172,6 @@ void MouseInput(int(&board)[3][3], int size, int& turn)
 
 int CheckforWin(int board[3][3], int& gamestate, int& who_won)
 {	
-
 	for (int i{ 0 }; i < 3; i++)
 	{
 		//cols
@@ -242,16 +264,6 @@ Rectangle ofText(const char* t, int fontSize, int x, int y)
 	return textRect;
 }
 
-void CheckCLickBegin(int& gamestate, Rectangle rect)
-{
-	Vector2 mouse_pos = GetMousePosition();
-
-	if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && CheckCollisionPointRec(mouse_pos,rect))
-	{
-		gamestate = GAME;
-	}
-}
-
 void drawEnding(int who_won, int x, int y ,int fontsize, Color col)
 {
 	if (who_won == X_PLAYER) {
@@ -266,4 +278,57 @@ void drawEnding(int who_won, int x, int y ,int fontsize, Color col)
 	DrawText("Yes", 175, 350, 25, col);
 	DrawText("No", 325, 350, 25, col);
 	DrawText("Press y or n", 200, 400, 25, col);
+}
+
+//SINGLEPLAYER
+bool TestWin(int board[3][3], int r, int c, int player) {
+	board[r][c] = player;
+	int dummy_state, dummy_win;
+	int res = CheckforWin(board, dummy_state, dummy_win);
+	board[r][c] = 0; // Backtrack
+	return (res == player);
+}
+
+void AIMove(int(&board)[3][3], int& turn)
+{
+	//try to win
+	for (int r{ 0 }; r < 3; r++)
+	{
+		for (int c{ 0 }; c < 3; c++)
+		{
+			if (board[r][c] == 0 && TestWin(board, r, c, O_VAL))
+			{
+				board[r][c] = O_VAL;
+				turn = X_VAL;
+				return;
+			}
+		}
+	}
+
+	for (int r{ 0 }; r < 3; r++)
+	{
+		for (int c{ 0 }; c < 3; c++)
+		{
+			if (board[r][c] == 0 && TestWin(board, r, c, X_VAL))
+			{
+				board[r][c] = O_VAL;
+				turn = X_VAL;
+				return;
+			}
+		}
+	}
+
+	if (board[1][1] == 0)
+	{
+		board[1][1] = O_VAL;
+		turn = X_VAL;
+		return;
+	}
+
+	for (int r = 0; r < 3; r++) {
+		for (int c = 0; c < 3; c++) {
+			if (board[r][c] == 0) { board[r][c] = O_VAL; turn = X_VAL; return; }
+		}
+	}
+
 }
